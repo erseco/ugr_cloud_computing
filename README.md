@@ -1,4 +1,4 @@
-# ugr_cloud_computing
+# ugr_cloud_computing [![Build Status](https://travis-ci.org/erseco/ugr_cloud_computing.svg?branch=master)](https://travis-ci.org/erseco/ugr_cloud_computing)
 
 Repositorio de trabajo de la asignatura Cloud Computing del Máster en Ingeniería Informática de la Universidad de Granada [UGR](https://www.ugr.es)
 
