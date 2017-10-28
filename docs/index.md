@@ -30,6 +30,9 @@ Se utilizará una arquitectura basada en microservicios.
 - El Bot Telegram estará hecho en `nodejs` y `mongodb`
 - El servicio HTTP lo proporcionará `Apache` con `PHP`
 
+## Provisionamiento
+- Se provisionarán máquinas remotas en AWS
+
 ## Licencia
 
 Este proyecto será liberado bajo la licencia [GNU GLP V3](https://github.com/erseco/ugr_cloud_computing/blob/master/LICENSE)
