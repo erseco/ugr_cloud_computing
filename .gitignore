@@ -1,3 +1,4 @@
 # Ignored files
 
-*
+# Ansible retry files
+*.retry

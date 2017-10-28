@@ -27,8 +27,7 @@ Se utilizará una arquitectura basada en microservicios.
 
 - Se usará la API para bots de Telegram.
 - El desarrollo del *scrapper* se realizará en `Python` usando la librería [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/).
-- La API REST se realizará en Ruby
-- El Bot Telegram estará hecho en `nodejs`
+- El Bot Telegram estará hecho en `nodejs` y `mongodb`
 - El servicio HTTP lo proporcionará `Apache` con `PHP`
 
 ## Licencia
