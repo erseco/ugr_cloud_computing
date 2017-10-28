@@ -1,0 +1,19 @@
+---
+ - hosts: localhost
+   connection: local
+   gather_facts: false
+   user: root
+   vars:
+    ec2_keypair: "ernesto"
+    ec2_security_group: "sg-221f5e50" # ssh-http-https
+    ec2_instance_type: "t2.micro"
+    ec2_image: "ami-cd0f5cb6" # Ubuntu Server 16.04 LTS (HVM), SSD Volume Type
+    ec2_subnet_ids: ['subnet-897289d0']
+    ec2_region: "us-east-1"
+    ec2_tag_Name: "server"
+    ec2_tag_Type: "webserver"
+    ec2_tag_Environment: "production"
+    ec2_volume_size: 16
+   roles:
+    - provision-ec2
+

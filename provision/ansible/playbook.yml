@@ -1,0 +1,23 @@
+# Install mongodb and nodejs
+---
+- hosts: tag_cc_true
+  become: yes
+  become_user: ubuntu
+  gather_facts: no
+
+  pre_tasks:
+
+  - name: refresh apt cache
+    become: yes
+    raw: sudo apt-get update
+
+  - name: install python-apt to pull in python
+    become: yes
+    raw: sudo apt-get install --no-install-recommends --assume-yes python-apt
+
+  tasks:
+
+  - name: install requirements
+    become: yes
+    raw: sudo apt-get -y install git mongodb nodejs npm
+
