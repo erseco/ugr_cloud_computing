@@ -1,5 +1,5 @@
 
-### Puppet
+### Puppet (WORK IN PROGRES, MAY NOT WORK)
 
 ## Configuracion del Servidor
 
@@ -49,8 +49,5 @@ sudo /opt/puppetlabs/bin/puppet agent --server 54.174.111.76
 
 Para provisionar una maquina con nodejs y mongodb ejecutar la orden:
 
-```
-ansible-playbook -vv -b playbook.yml
-```
 
 Nota: Las instancias creadas en AWS para la asingarua *cloud computing* se deben crear con el *tag* `cc=true` para diferenciarlas de las usadas para otras tareas.
