@@ -31,7 +31,12 @@ Se utilizará una arquitectura basada en microservicios.
 - El servicio HTTP lo proporcionará `Apache` con `PHP`
 
 ## Provisionamiento
-- Se provisionarán máquinas remotas en AWS
+
+Para el provisionamiento se crearán máquinas en Amazon Web Service, se ha realizado el mismo con dos herramientas:
+
+ - [Ansible](https://github.com/erseco/ugr_cloud_computing/tree/master/provision/ansible/README.md)
+ - [Puppet (Work In Progress)](https://github.com/erseco/ugr_cloud_computing/tree/master/provision/puppet/README.md)
+
 
 ## Licencia
 
