@@ -16,7 +16,7 @@ Se han provisionado máquinas en Amazon Web Services utilizando las herramientas
 Se han provisionado máquinas en Microsoft Azure utilizando la herramienta de línea de comandos
 
 - [acopio.sh](https://github.com/erseco/ugr_cloud_computing/tree/master/acopio.sh)
-- IP: 
+- IP: 13.65.24.79 
 
 
 
