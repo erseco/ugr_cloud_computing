@@ -21,17 +21,24 @@ El proyecto consistirá en varios componentes interconectados que:
 - Bot Telegram que hará uso de la API
 - Servicio `HTTP` que hará uso de la API
 
+
 ## Arquitectura
+
 
 Se utilizará una arquitectura basada en microservicios.
 
 - Se usará la API para bots de Telegram.
 - El desarrollo del *scrapper* se realizará en `Python` usando la librería [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/).
-- El Bot Telegram estará hecho en `nodejs` y `mongodb`
-- El servicio HTTP lo proporcionará `Apache` con `PHP`
+- El Bot Telegram estará hecho en `nodejs` y `mongodb`.
+- El servicio HTTP lo proporcionará `Apache` con `PHP`.
 
-## Provisionamiento
-- Se provisionarán máquinas remotas en AWS
+## Provisionamiento
+
+Para el provisionamiento se crearán máquinas en Amazon Web Service, se ha realizado el mismo con dos herramientas:
+
+ - [Ansible](https://github.com/erseco/ugr_cloud_computing/tree/master/provision/ansible/README.md)
+ - [Puppet (Work In Progress)](https://github.com/erseco/ugr_cloud_computing/tree/master/provision/puppet/README.md)
+
 
 ## Licencia
 
