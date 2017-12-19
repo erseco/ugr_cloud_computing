@@ -8,10 +8,8 @@ Podemos instalar docker con el siguiente comando:
 wget -qO- https://get.docker.com/ | sh
 ```
 
-## Orquestación en AWS con vagrant
-
-Instalamos el plugin `vagrant-aws`
+## Instalación de nuestra imagen
 
 ```
-vagrant plugin install vagrant-aws
+sudo docker pull erseco/ugr_cloud_computing
 ```
