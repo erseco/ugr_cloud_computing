@@ -22,7 +22,7 @@ Se han provisionado máquinas en Microsoft Azure utilizando la herramienta de l�
 
 Se han orquestado dos máquinas en Microsoft Azure utilizando Vagrant
 
-- [Vagrant](https://github.com/erseco/ugr_cloud_computing/tree/master/orquestation/README.md)
-- Despliegue:52.191.118.148
+- [Vagrant](https://github.com/erseco/ugr_cloud_computing/tree/master/orquestacion/README.md)
+- Despliegue Vagrant:52.191.118.148
 
 *NOTA: La documentación está en el directorio `docs` y se puede consultar en esta url: https://erseco.github.io/ugr_cloud_computing/*
