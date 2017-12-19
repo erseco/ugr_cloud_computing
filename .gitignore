@@ -2,3 +2,5 @@
 
 # Ansible retry files
 *.retry
+
+.vagrant

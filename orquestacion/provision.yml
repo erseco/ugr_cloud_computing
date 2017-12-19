@@ -1,30 +1,23 @@
+# Install mongodb and nodejs
 ---
 - hosts: all
-  sudo: yes
+  become: yes
+  become_method: sudo
+  # become_user: sudo
+  gather_facts: no
+
+  pre_tasks:
+
+  - name: refresh apt cache
+    become: yes
+    raw: sudo apt-get update
+
+  - name: install python-apt to pull in python
+    become: yes
+    raw: sudo apt-get install --no-install-recommends --assume-yes python-apt
 
   tasks:
-    ##
-    # Actualización del sistema
-    ##
-    - name: Actualización de repositorios
-      apt:
-          update_cache: yes
-    ##
-    # Instalación de paquetes necesarios.
-    ##
-    - name: Instalación de paquetes requeridos.
-      apt: name=git state=present
-      apt: name=python3 state=present
-      apt: name=python3-pip state=present
 
-    ##
-    # Configuración de python3-pip
-    ##
-    - name: Configuración de python3-pip
-      shell: export LC_ALL=C
-
-    ##
-    # Instalación de paquetes de pip
-    ##
-    - name: Instalación de paquetes pip
-      shell: pip3 install django djangorestframework pytest boto3n
+  - name: install requirements
+    become: yes
+    raw: sudo apt-get -y install git mongodb nodejs npm

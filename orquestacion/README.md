@@ -1,6 +1,28 @@
 # HOW-TO
 
-Instalamos vagrant siguiendo la guia de su web y luego lanzamos los comandos:
+Vamos a provisionar máquinas con Vagrant, en nuestras pruebas vamos a crear dos máquinas con Ubuntu 16.04 LTS por ser una versión de Ubuntu muy estable y con soporte extendido
+
+## Instalación de vagrant
+
+Instalamos vagrant siguiendo la guia de su web
+
+## Orquestación en AWS con vagrant
+
+Instalamos el plugin `vagrant-aws`
+
+```
+vagrant plugin install vagrant-aws
+```
+
+Orquestamos la máquina segun el Vagrantfile
+
+```
+vagrant up
+```
+NOTA: Para evitar tener que agregar las credenciales al Vagranfile se han definido en `$HOME/.aws/credentials` tal y como recomienda la documentación de AWS
+
+
+## Orquestación en azure con vagrant
 
 ```
 az login
