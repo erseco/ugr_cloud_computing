@@ -1,0 +1,26 @@
+# Install docker
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  gather_facts: no
+
+  pre_tasks:
+
+  - name: refresh apt cache
+    become: yes
+    raw: sudo apt-get update
+
+  - name: install python-apt to pull in python
+    become: yes
+    raw: sudo apt-get install --no-install-recommends --assume-yes python-apt
+
+  tasks:
+
+  - name: install docker
+    become: yes
+    raw: wget -qO- https://get.docker.com/ | sh
+
+  - name: run container
+    become: yes
+    raw: sudo docker run -p 80:80 -d erseco/ugr_cloud_computing

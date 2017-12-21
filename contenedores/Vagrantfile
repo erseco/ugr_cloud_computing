@@ -1,0 +1,31 @@
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "sharpie/dummy"
+  config.vm.box_version = "1.0.0"
+
+  config.vm.provider :aws do |aws, override|
+
+    # For fix this issue: https://github.com/hashicorp/vagrant/issues/5401
+    override.nfs.functional = false
+
+    # Definimos los valores que tendrán las instancias
+    aws.keypair_name = "ernesto"
+    aws.ami = "ami-aa2ea6d0" # Ubuntu Server 16.04 LTS (HVM) AMI
+    aws.instance_type = "t2.nano"
+    aws.tags = { "Name" => 'cloud_computing' }
+    aws.security_groups = "ssh-http-https"
+
+    override.ssh.username = "ubuntu"
+    override.ssh.private_key_path = "~/.ssh/id_rsa"
+  end
+
+  # Configuración de la primera instancia
+  config.vm.define "machine_1"
+
+  # Este será el fichero que se provisionará
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "provision.yml"
+  end
+
+
+end
