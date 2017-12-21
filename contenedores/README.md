@@ -14,8 +14,8 @@ Podemos instalar docker en nuestro servidor con el siguiente comando:
 wget -qO- https://get.docker.com/ | sh
 ```
 
-## Descarga y ejecución de nuestra imagen
 
+## Descarga y ejecución de nuestra imagen
 ```
 sudo docker run -p 80:80 -d erseco/ugr_cloud_computing
 ```
