@@ -31,7 +31,8 @@ Se han orquestado dos máquinas en Microsoft Azure utilizando Vagrant
 Se han desplegado un contenedor con node.js
 
 - [Docker](https://github.com/erseco/ugr_cloud_computing/tree/master/contenedores/README.md)
-- Contenedor: http://34.229.218.229/status/
+- Contenedor: http://34.229.218.229/
+- Imagen en Docker Hub: https://hub.docker.com/r/erseco/ugr_cloud_computing/
 
 
 *NOTA: La documentación está en el directorio `docs` y se puede consultar en esta url: https://erseco.github.io/ugr_cloud_computing/*
