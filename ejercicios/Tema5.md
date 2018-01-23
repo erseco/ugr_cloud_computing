@@ -174,6 +174,12 @@ IMAGE               CREATED             CREATED BY                              
 
 ## 8. Crear un volumen y usarlo, por ejemplo, para escribir la salida de un programa determinado.
 
+```
+docker volume create test
+docker run -it --rm -v test:/test alpine /bin/sh
+ls / > /test/prueba.txt
+```
+
 ## 9. Usar un miniframework REST para crear un servicio web y introducirlo en un contenedor, y componerlo con un cliente REST que sea el que finalmente se ejecuta y sirve como “frontend”.
 
 ## 10. Reproducir los contenedores creados anteriormente usando un Dockerfile.
