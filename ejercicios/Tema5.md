@@ -177,3 +177,6 @@ IMAGE               CREATED             CREATED BY                              
 ## 9. Usar un miniframework REST para crear un servicio web y introducirlo en un contenedor, y componerlo con un cliente REST que sea el que finalmente se ejecuta y sirve como “frontend”.
 
 ## 10. Reproducir los contenedores creados anteriormente usando un Dockerfile.
+
+## 11. Crear con docker-machine una máquina virtual local que permita desplegar contenedores y ejecutar en él contenedores creados con antelación.
+
