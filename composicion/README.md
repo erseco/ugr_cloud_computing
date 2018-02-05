@@ -23,6 +23,6 @@ wget -qO- https://get.docker.com/ | sh
 ## Descarga y ejecución de nuestra imagen
 ```
 git clone https://github.com/erseco/ugr_cloud_computing.git
-cd ugr_cloud_computing
-docker-compose up
+cd ugr_cloud_computing/composicion
+sudo docker-compose up
 ```
