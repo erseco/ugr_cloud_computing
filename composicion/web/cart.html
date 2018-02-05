@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Product interface</title>
+  <link href="css/bootstrap.css" rel="stylesheet" />
+
+  <script src="js/jquery-1.11.0.min.js"></script>
+  <script src="js/purl.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+
+
+</head>
+<body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">PharmacyDSS</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="index.html">Home</a></li>
+            <li class="active"><a href="cart.html">Cart</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="login.html">Iniciar sesión...</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <br />
+    <br />
+    <br />
+
+  <div class="container">
+    <div class="row">
+        <div class="col-sm-12 col-md-10 col-md-offset-1">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th class="text-center">Price</th>
+                        <th class="text-center">Total</th>
+                        <th> </th>
+                    </tr>
+                </thead>
+                <tbody id="products">
+                    <!-- here will be inserted the new lines -->
+                    <tr>
+                        <td>   </td>
+                        <td>   </td>
+                        <td>   </td>
+                        <td><h3>Total</h3></td>
+                        <td class="text-right"><h3><strong><span id="total">0</span> €</strong></h3></td>
+                    </tr>
+                    <tr>
+                        <form id="add" method="post" onsubmit="orderAdd();">
+                        <td><input type="email" id="email" name="email" class="form-control" placeholder="Enter a valid email address" required="" autofocus=""></td>
+                        <td>   </td>
+                        <td>   </td>
+                        <td>
+
+                        <button type="button" class="btn btn-default" onclick="window.location.href='list.html?pharmacy=1'">
+                            <span class="glyphicon glyphicon-shopping-cart"></span> Continue Shopping
+                        </button></td>
+                        <td>
+                        <button type="submit" class="btn btn-success">
+                            Checkout <span class="glyphicon glyphicon-play"></span>
+                        </button></td>
+                      </form>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+
+
+<script>
+    $(document).ready(function () {
+
+        var id = $.url().param('id');
+
+        productList(id);
+
+    });
+
+    var baseUrl = ""; //"http://dss.ernesto.es:8080";
+
+    // Get all Products to display
+    function productList(id) {
+      // Call Web API to get a list of Products
+      $.ajax({
+        url: baseUrl + '/products/'+id,
+        type: 'GET',
+        dataType: 'json',
+        success: function (products) {
+          productListSuccess(products);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    // Display all Products returned from Web API call
+    function productListSuccess(product) {
+      // Iterate over the collection of data
+      // $.each(products, function (index, product) {
+        // Add a row to the Product table
+        productAddRow(product);
+      // });
+    }
+
+    // Add Product row to <table>
+    function productAddRow(product) {
+      // // First check if a <tbody> tag exists, add one if not
+      // if ($("#productTable tbody").length == 0) {
+      //   $("#products").append("<tbody></tbody>");
+      // }
+
+      // Append row to <table>
+      $("#products").prepend(productBuildTableRow(product));
+
+
+      updatePrices();
+
+    }
+
+
+    // Add Product row to <table>
+    function productDeleteRow(product) {
+      // // First check if a <tbody> tag exists, add one if not
+      // if ($("#productTable tbody").length == 0) {
+      //   $("#products").append("<tbody></tbody>");
+      // }
+
+      // Append row to <table>
+      $("#"+product).remove();
+
+
+      updatePrices();
+
+    }
+
+  $('form#add').submit(function(e) {
+      e.preventDefault();
+      // do something
+  });
+
+
+    function orderAdd()
+    {
+
+      var id = $.url().param('id');
+      var quantity = $(".quantity").val();
+
+      var products = new Array();
+      products.push({id: id, quantity: quantity})
+
+      var pharmacy = 1;
+      var email = $("#email").val();
+      var total = $("#total").text();
+      var status = "pending";
+
+      // Call Web API to add a new order
+      $.ajax({
+        url: baseUrl + "/orders/",
+        type: 'POST',
+        data: "pharmacy=" + pharmacy + "&email=" + email + "&total=" + total + "&status=pending&products=" + JSON.stringify(products),
+        success: function (order) {
+          OrderAddSuccess(order);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+
+      // alert("You must enter your e-mail address");
+
+    }
+
+    function OrderAddSuccess(order)
+    {
+       alert("Order with id: " + order._id +  " placed sucessfully added. Redirecting to main page...");
+       window.location.href = "index.html";
+    }
+
+
+    // Build a <tr> for a row of table data
+    function productBuildTableRow(product)
+    {
+
+
+        var ret = '<tr id="' + product._id +'">' +
+          '   <input type="hidden" class="id" value="' + product._id +'"/>' +
+          '   <td class="col-sm-8 col-md-6">' +
+          '   <div class="media">' +
+          '       <div class="media-body">' +
+          '           <h4 class="media-heading">'+ product.name  +'</h4>' +
+          '           <h5 class="media-heading"> by '+ product.manufacturer  +'</h5>' +
+          '           <span>Status: </span><span class="text-success"><strong>In Stock</strong></span>' +
+          '       </div>' +
+          '   </div></td>' +
+          '   <td class="col-sm-1 col-md-1" style="text-align: center">' +
+          '   <input type="number" class="form-control quantity" id="quantity" name="quantity" value="1" onchange="updatePrices()">' +
+          '   </td>' +
+          '   <td class="col-sm-1 col-md-1 text-center"><strong><span class="productprice">' + product.price + '</span> €</strong></td>' +
+          '   <td class="col-sm-1 col-md-1 text-center"><strong><span class="producttotal">' + product.price + '</span> €</strong></td>' +
+          '   <td class="col-sm-1 col-md-1">' +
+          '   <button type="button" class="btn btn-danger" onclick="productDeleteRow(\'' + product._id +'\');">' +
+          '       <span class="glyphicon glyphicon-remove"></span> Remove' +
+          '   </button></td>' +
+          '</tr>';
+
+      return ret;
+    }
+
+
+    function updatePrices()
+    {
+
+        var total = 0;
+
+        $('.quantity').each(function () {
+
+            var quantity = $(this).val();
+
+            var price = $(this).parent().parent().find(".productprice").text();
+
+            var producttotal = price * quantity;
+
+           $(this).parent().parent().find(".producttotal").text(producttotal);
+
+            total = total + producttotal
+
+        });
+
+        $("#total").text(total);
+
+    }
+
+    // Handle exceptions from AJAX calls
+    function handleException(request, message, error) {
+      var msg = "";
+
+      msg += "Code: " + request.status + "\n";
+      msg += "Text: " + request.statusText + "\n";
+      if (request.responseJSON != null) {
+        msg += "Message" + request.responseJSON.Message + "\n";
+      }
+
+      alert(msg);
+    }
+  </script>
+
+
+
+</html>

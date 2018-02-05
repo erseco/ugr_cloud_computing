@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Orders interface</title>
+  <link href="css/bootstrap.css" rel="stylesheet" />
+
+  <script src="js/jquery-1.11.0.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6">
+        <h2><a href="admin_products.html">Products list</a> | Orders list</h2>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-9">
+        <table id="orderTable"
+               class="table table-bordered table-condensed table-striped">
+          <thead>
+            <tr>
+              <th>e-mail</th>
+              <th>products</th>
+              <th>total</th>
+              <th>status</th>
+              <th>Accept</th>
+              <th>Cancel</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+
+
+    </div>
+  </div>
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      orderList();
+    });
+
+    var baseUrl = ""; //"http://dss.ernesto.es:8080";
+
+
+    function orderUpdate(id, status) {
+
+
+      var url = baseUrl + "/orders/" + id;
+
+      // Call Web API to update order
+      $.ajax({
+        url: url,
+        type: 'PUT',
+        data: "status=" + status,
+        success: function (order) {
+          orderUpdateSuccess(order);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    function orderUpdateSuccess(order) {
+      orderUpdateInTable(order);
+    }
+
+    // Update order in <table>
+    function orderUpdateInTable(order) {
+      // Find Order in <table>
+      var row = $("#orderTable button[data-id='" + order._id + "']")
+                .parents("tr")[0];
+      // Add changed order to table
+      $(row).after(orderBuildTableRow(order));
+      // Remove original order
+      $(row).remove();
+
+    }
+
+    // Get all Orders to display
+    function orderList() {
+      // Call Web API to get a list of Orders
+      $.ajax({
+        url: baseUrl + '/orders/',
+        type: 'GET',
+        dataType: 'json',
+        success: function (orders) {
+          orderListSuccess(orders);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    // Display all Orders returned from Web API call
+    function orderListSuccess(orders) {
+      // Iterate over the collection of data
+      $.each(orders, function (index, order) {
+
+
+      var products = jQuery.parseJSON(order.products);
+
+      var result = "";
+
+      if (products.length > 0)
+      {
+
+        $.each(products, function(i, product) {
+
+          jQuery.getJSON( baseUrl + '/products/'+product.id, function(json){
+
+           result = result + product.quantity + " x " + json.name + " " + json.price + " €\n<br />";
+
+            // TODO FIX for multiple products (put the addrow outside)
+            order.products = result;
+            console.log(result);
+            // Add a row to the Order table
+             orderAddRow(order);
+
+
+           });
+
+        });
+
+      } else {
+        // Add a row to the Order table
+        orderAddRow(order);
+      }
+
+      });
+    }
+
+    // Add Order row to <table>
+    function orderAddRow(order) {
+      // First check if a <tbody> tag exists, add one if not
+      if ($("#orderTable tbody").length == 0) {
+        $("#orderTable").append("<tbody></tbody>");
+      }
+
+      // Append row to <table>
+      $("#orderTable tbody").append(
+        orderBuildTableRow(order));
+    }
+
+    // Build a <tr> for a row of table data
+    function orderBuildTableRow(order)
+    {
+
+      var ret = "<tr>" +
+            "<td>" + order.email  + "</td>" +
+            "<td>" + order.products + "</td>" +
+            "<td>" + order.total  + " €</td>" +
+            "<td>" + order.status  + "</td>" +
+            "<td>" +
+              "<button type='button' " +
+                  "onclick='orderUpdate(\"" + order._id + "\", \"accepted\");' " +
+                  "class='btn btn-default' " +
+                  "data-id='" + order._id + "'>" +
+                  "<span class='glyphicon glyphicon-ok' />" +
+              "</button>" +
+            "</td>" +
+            "<td>" +
+              "<button type='button' " +
+                 "onclick='orderUpdate(\"" + order._id + "\", \"cancelled\");' " +
+                 "class='btn btn-default' " +
+                 "data-id='" + order._id + "'>" +
+                 "<span class='glyphicon glyphicon-remove' />" +
+              "</button>" +
+            "</td>" +
+          "</tr>";
+
+      return ret;
+    }
+
+    // Handle exceptions from AJAX calls
+    function handleException(request, message, error) {
+      var msg = "";
+
+      msg += "Code: " + request.status + "\n";
+      msg += "Text: " + request.statusText + "\n";
+      if (request.responseJSON != null) {
+        msg += "Message" + request.responseJSON.Message + "\n";
+      }
+
+      alert(msg);
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,357 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Product interface</title>
+  <link href="css/bootstrap.css" rel="stylesheet" />
+
+  <script src="js/jquery-1.11.0.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6">
+        <h2>Products list |  <a href="admin_orders.html">Orders list</a> </h2>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-6">
+        <button type="button" id="addButton"
+                class="btn btn-primary"
+                onclick="addClick();" data-toggle="modal" data-target="#add_form">
+          Add Product
+        </button>
+      </div>
+    </div>
+    <br />
+
+    <div class="row">
+      <div class="col-sm-9">
+        <table id="productTable"
+               class="table table-bordered table-condensed table-striped">
+          <thead>
+            <tr>
+              <th>Edit</th>
+              <th>name</th>
+              <th>price</th>
+              <th>manufacturer</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="add_form" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close"
+                   data-dismiss="modal">
+                       <span aria-hidden="true">&times;</span>
+                       <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    Product Information
+                </h4>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+
+            <form id="add" onsubmit="return false;">
+            <input type="hidden" id="_id" name="_id" value="" />
+            <div class="form-group">
+            <div class="form-group">
+                <label for="name">Nombre</label>
+                <input class="form-control" id="name" name="name" />
+            </div>
+            <div class="form-group">
+                <label for="price">Precio</label>
+                <input class="form-control" id="price" name="price" type="number" />
+            </div>
+            <div class="form-group">
+                <label for="manufacturer">Fabricante</label>
+                <select class="form-control" id="manufacturer" name="manufacturer" >
+                  <option>generic</option>
+                  <option>rovi</option>
+                  <option>cinfa</option>
+                  <option>normon</option>
+                  <option>pfizer</option>
+                  <option>bayer</option>
+                  <option>alconcusi</option>
+                </select>
+            </div>
+          </div>
+
+      </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default"
+                        data-dismiss="modal">
+                            Close
+                </button>
+                <button type="button" id="updateButton" data-dismiss="modal" class="btn btn-primary" onclick="updateClick();">
+                    Add
+                </button>
+            </div>
+            </form>
+        </div>
+
+
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      productList();
+    });
+
+    var baseUrl = ""; //"http://dss.ernesto.es:8080";
+
+    var Product = {
+      _id: "0",
+      name: "",
+      price: "0",
+      manufacturer: "generic",
+    }
+
+    function productGet(ctl) {
+      $('#add_form').show();
+      // Get product id from data- attribute
+      var id = $(ctl).data("id");
+
+      // Store product id in hidden field
+      $("#_id").val(id);
+
+      // Call Web API to get a Product
+      $.ajax({
+        url: baseUrl + "/products/" + id,
+        type: 'GET',
+        dataType: 'json',
+        success: function (product) {
+          productToFields(product);
+
+          // Change Update Button Text
+          $("#updateButton").text("Update");
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    function updateClick(e) {
+
+      // Build product object from inputs
+      Product = new Object();
+      Product._id = $("#_id").val();
+      Product.name = $("#name").val();
+      Product.price = $("#price").val();
+      Product.manufacturer = $("#manufacturer").val();
+
+      if ($("#updateButton").text().trim() == "Add") {
+        productAdd(Product);
+      }
+      else {
+        productUpdate(Product);
+      }
+    }
+
+    function addClick() {
+
+      $('#add_form').toggle();
+
+      formClear();
+    }
+
+    function productUpdate(product) {
+
+
+      var url = baseUrl + "/products/" + product._id;
+
+      // Call Web API to update product
+      $.ajax({
+        url: url,
+        type: 'PUT',
+        data: $('#add').serialize(),
+        success: function (product) {
+          productUpdateSuccess(product);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    function productUpdateSuccess(product) {
+      productUpdateInTable(product);
+    }
+
+    function productAdd(product) {
+      // Call Web API to add a new product
+      $.ajax({
+        url: baseUrl + "/products/",
+        type: 'POST',
+        data: $('input[name!=_id],select', $('#add')).serialize(),
+        success: function (product) {
+          productAddSuccess(product);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    function productAddSuccess(product) {
+      productAddRow(product);
+      formClear();
+    }
+
+    // Update product in <table>
+    function productUpdateInTable(product) {
+      // Find Product in <table>
+      var row = $("#productTable button[data-id='" + product._id + "']")
+                .parents("tr")[0];
+      // Add changed product to table
+      $(row).after(productBuildTableRow(product));
+      // Remove original product
+      $(row).remove();
+
+      // Clear form fields
+      formClear();
+    }
+
+    function productToFields(product) {
+      $("#_id").val(product._id);
+      $("#name").val(product.name);
+      $("#price").val(product.price);
+      $("#manufacturer").val(product.manufacturer);
+    }
+
+    // Get all Products to display
+    function productList() {
+      // Call Web API to get a list of Products
+      $.ajax({
+        url: baseUrl + '/products/',
+        type: 'GET',
+        dataType: 'json',
+        success: function (products) {
+          productListSuccess(products);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    // Display all Products returned from Web API call
+    function productListSuccess(products) {
+      // Iterate over the collection of data
+      $.each(products, function (index, product) {
+        // Add a row to the Product table
+        productAddRow(product);
+      });
+    }
+
+    // Add Product row to <table>
+    function productAddRow(product) {
+      // First check if a <tbody> tag exists, add one if not
+      if ($("#productTable tbody").length == 0) {
+        $("#productTable").append("<tbody></tbody>");
+      }
+
+      // Append row to <table>
+      $("#productTable tbody").append(
+        productBuildTableRow(product));
+    }
+
+    function productDelete(ctl) {
+
+      var result = confirm('Do you want to delete "' + $(ctl).data("name") + '"?');
+      if (result) {
+
+        var id = $(ctl).data("id");
+
+        $.ajax({
+          url: baseUrl + "/products/" + id,
+          type: 'DELETE',
+          success: function (product) {
+            $(ctl).parents("tr").remove();
+          },
+          error: function (request, message, error) {
+            handleException(request, message, error);
+          }
+        });
+      }
+    }
+
+    // Build a <tr> for a row of table data
+    function productBuildTableRow(product)
+    {
+      var ret = "<tr>" +
+            "<td>" +
+              "<button type='button' " +
+                  "onclick='productGet(this);' data-toggle='modal' data-target='#add_form' " +
+                  "class='btn btn-default' " +
+                  "data-id='" + product._id + "'>" +
+                  "<span class='glyphicon glyphicon-edit' />" +
+              "</button>" +
+            "</td>" +
+            "<td>" + product.name  + "</td>" +
+            "<td>" + product.price + "</td>" +
+            "<td>" + product.manufacturer  + "</td>" +
+            "<td>" +
+              "<button type='button' " +
+                 "onclick='productDelete(this);' " +
+                 "class='btn btn-default' " +
+                 "data-id='" + product._id + "' " +
+                 "data-name='" + product.name + "'>" +
+                 "<span class='glyphicon glyphicon-remove' />" +
+              "</button>" +
+            "</td>" +
+          "</tr>";
+
+      return ret;
+    }
+
+    // Clear form fields
+    function formClear() {
+      $("#_id").val("");
+      $("#name").val("");
+      $("#price").val("");
+      $("#manufacturer").val("generic");
+
+      // Change Update Button Text
+      $("#updateButton").text("Add");
+    }
+
+    // Handle exceptions from AJAX calls
+    function handleException(request, message, error) {
+      var msg = "";
+
+      msg += "Code: " + request.status + "\n";
+      msg += "Text: " + request.statusText + "\n";
+      if (request.responseJSON != null) {
+        msg += "Message" + request.responseJSON.Message + "\n";
+      }
+
+      alert(msg);
+    }
+  </script>
+
+</body>
+</html>

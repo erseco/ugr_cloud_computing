@@ -182,7 +182,83 @@ ls / > /test/prueba.txt
 
 ## 9. Usar un miniframework REST para crear un servicio web y introducirlo en un contenedor, y componerlo con un cliente REST que sea el que finalmente se ejecuta y sirve como “frontend”.
 
+Fichero `docker-compose.yml`:
+```
+version: '3'
+services:
+  api:
+    build: ./composicion
+    depends_on:
+      - mongo
+    ports:
+      - "80:8080"
+  mongo:
+    image: mvertes/alpine-mongo
+    volumes:
+      - 'mongo:/data/db'
+volumes:
+  mongo: null
+```
+
 ## 10. Reproducir los contenedores creados anteriormente usando un Dockerfile.
 
+Fichero `Dockerfile`:
+```
+# Using the LTS 8.x version of node docker container (in Debian 8.10)
+FROM node:carbon
+
+MAINTAINER Ernesto Serrano <erseco@correo.ugr.es>
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY package*.json ./
+
+RUN npm install
+# If you are building your code for production
+# RUN npm install --only=production
+
+# Bundle app source
+COPY . .
+
+EXPOSE 80
+CMD [ "npm", "run", "start" ]
+```
+
+
 ## 11. Crear con docker-machine una máquina virtual local que permita desplegar contenedores y ejecutar en él contenedores creados con antelación.
+
+Insalación de virtualbox:
+```
+sudo apt-get install virtualbox
+```
+
+Instalación de docker-machine:
+```
+curl -L https://github.com/docker/machine/releases/download/v0.13.0/docker-machine-`uname -s`-`uname -m` >/tmp/docker-machine && \
+sudo install /tmp/docker-machine /usr/local/bin/docker-machine
+```
+
+Comprobamos la version:
+```
+docker-machine version
+```
+
+Resultado:
+```
+docker-machine version 0.13.0, build 9ba6da9
+```
+
+Creamos la máquina:
+```
+sudo docker-machine create --driver=virtualbox default
+```
+
+Iniciamos la máuqina:
+```
+docker-machine start default
+```
 

@@ -34,4 +34,13 @@ Se han desplegado un contenedor con node.js
 - Contenedor: http://34.229.218.229/
 - Imagen en Docker Hub: https://hub.docker.com/r/erseco/ugr_cloud_computing/
 
+## Composición
+
+Para poder realizar este hito se ha orquestado una máquina t2.nano (la mas pequeña) en AWS haciendo uso del anterior hito.
+Para dicha máquina se ha elegido Ubuntu 16:04 LTS por ser una versión estandarizada con soporte extendido.
+Se ha creado una imagen docker en que expone un servicio http con express (node js) que se ha conectado con otro contenedor sirviendo una base de datos mongodb
+
+- [docker-compose](https://github.com/erseco/ugr_cloud_computing/tree/master/composicion/README.md)
+- Despliegue Hito6:http://ec2-52-90-23-155.compute-1.amazonaws.com
+
 *NOTA: La documentación está en el directorio `docs` y se puede consultar en esta url: https://erseco.github.io/ugr_cloud_computing/*

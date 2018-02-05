@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>PharmacyDSS</title>
+  <link rel="stylesheet" href="css/bootstrap.css" />
+
+  <script src="js/jquery-1.11.0.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+
+<script>
+
+        var map;
+        function initMap() {
+
+          var locations = [
+            ['Farmacia 1',    37.188533879320474, -3.624520883264154, '1'],
+            ['Farmacia 2',    37.1955422062948, -3.615251168908685, 1],
+            ['Farmacia 3',    37.20128513072, -3.6193066689392026, 1],
+            ['Farmacia 4',    37.19957597268761, -3.6283188912292417, 1],
+            ['Farmacia 5',    37.19335431064119, -3.627632245721429, 1],
+            ['Farmacia 6',    37.188533879320474, -3.625894174279779, 1],
+          ];
+          map = new google.maps.Map(document.getElementById('map'), {
+               zoom: 15,
+               center: new google.maps.LatLng(37.197097624800044, -3.624563798608392),
+               mapTypeId: google.maps.MapTypeId.ROADMAP
+          });
+
+          var infowindow = new google.maps.InfoWindow;
+
+          var marker, i;
+
+          for (i = 0; i < locations.length; i++) {
+              marker = new google.maps.Marker({
+                   position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+                   map: map
+              });
+
+              google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                   return function() {
+                        console.log(locations[i][0])
+                        console.log(locations[i][1])
+                        console.log(locations[i][2])
+                        console.log(locations[i][3])
+                        console.log('--------')
+                       infowindow.setContent(locations[i][0] + '<br /><a href="list.html?_id=' + locations[i][3] + '">Ver catalogo</a>' );
+                       infowindow.open(map, marker);
+                   }
+              })(marker, i));
+          }
+
+      infoWindow = new google.maps.InfoWindow({map: map});
+
+      // Try HTML5 geolocation.
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          var pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+
+          infoWindow.setPosition(pos);
+          infoWindow.setContent('Location found.');
+          map.setCenter(pos);
+        }, function() {
+          handleLocationError(true, infoWindow, map.getCenter());
+        });
+      } else {
+        // Browser doesn't support Geolocation
+        handleLocationError(false, infoWindow, map.getCenter());
+      }
+
+
+    function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+      // infoWindow.setPosition(pos);
+      // infoWindow.setContent(browserHasGeolocation ?
+      //                       'Error: The Geolocation service failed.' :
+      //                       'Error: Your browser doesn\'t support geolocation.');
+    }
+
+  }
+
+  </script>
+
+
+
+</head>
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">PharmacyDSS</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="login.html">Iniciar sesión...</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div id="map"></div>
+</body>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzI3DXpZu_tGS1JIV8Vy2ieMxtDTzVlNc&callback=initMap">
+</script>
+
+</html>

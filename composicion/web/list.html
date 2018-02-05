@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Product interface</title>
+  <link href="css/bootstrap.css" rel="stylesheet" />
+
+  <script src="js/jquery-1.11.0.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+
+
+</head>
+<body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">PharmacyDSS</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="index.html">Home</a></li>
+            <li class="active"><a href="list.html">Products</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="login.html">Iniciar sesión...</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+
+<div class="container">
+    <div class="well well-sm">
+        <strong>Category Title</strong>
+        <div class="btn-group">
+            <a href="#" id="list" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-th-list">
+            </span>List</a> <a href="#" id="grid" class="btn btn-default btn-sm"><span
+                class="glyphicon glyphicon-th"></span>Grid</a>
+        </div>
+    </div>
+    <div id="products" class="row list-group">
+
+    </div>
+</div>
+
+
+</body>
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#list').click(function(event){event.preventDefault();$('#products .item').addClass('list-group-item');});
+    $('#grid').click(function(event){event.preventDefault();$('#products .item').removeClass('list-group-item');$('#products .item').addClass('grid-group-item');});
+});
+</script>
+
+
+<script>
+    $(document).ready(function () {
+      productList();
+    });
+
+    var baseUrl = ""; //"http://dss.ernesto.es:8080";
+
+    // Get all Products to display
+    function productList() {
+      // Call Web API to get a list of Products
+      $.ajax({
+        url: baseUrl + '/products/',
+        type: 'GET',
+        dataType: 'json',
+        success: function (products) {
+          productListSuccess(products);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    // Display all Products returned from Web API call
+    function productListSuccess(products) {
+      // Iterate over the collection of data
+      $.each(products, function (index, product) {
+        // Add a row to the Product table
+        productAddRow(product);
+      });
+    }
+
+    // Add Product row to <table>
+    function productAddRow(product) {
+      // // First check if a <tbody> tag exists, add one if not
+      // if ($("#productTable tbody").length == 0) {
+      //   $("#products").append("<tbody></tbody>");
+      // }
+
+      // Append row to <table>
+      $("#products").append(
+        productBuildTableRow(product));
+    }
+
+
+
+    // Build a <tr> for a row of table data
+    function productBuildTableRow(product)
+    {
+
+
+    var ret ='<div class="item  col-xs-4 col-lg-4">' +
+          '  <div class="thumbnail">' +
+          '      <div class="caption">' +
+          '          <h4 class="group inner list-group-item-heading">' +
+          '              '+ product.name  +'</h4><h5>'+ product.manufacturer  +'</h5>' +
+          '          <div class="row">' +
+          '              <div class="col-xs-12 col-md-6">' +
+          '                  <p class="lead">' +
+          '                      ' + product.price + ' €</p>' +
+          '              </div>' +
+          '              <div class="col-xs-12 col-md-6">' +
+          '                  <a class="btn btn-success" href="cart.html?id='+ product._id +'">Buy</a>' +
+          '              </div>' +
+          '          </div>' +
+          '      </div>' +
+          '  </div>' +
+          ' </div>';
+
+      return ret;
+    }
+
+    // Handle exceptions from AJAX calls
+    function handleException(request, message, error) {
+      var msg = "";
+
+      msg += "Code: " + request.status + "\n";
+      msg += "Text: " + request.statusText + "\n";
+      if (request.responseJSON != null) {
+        msg += "Message" + request.responseJSON.Message + "\n";
+      }
+
+      alert(msg);
+    }
+  </script>
+
+
+</html>
