@@ -1,0 +1,30 @@
+version: '3'
+services:
+  owncloud:
+    image: owncloud/server:latest
+    restart: always
+    ports:
+      - 80
+    environment:
+      - OWNCLOUD_DOMAIN=localhost
+      - OWNCLOUD_DB_TYPE=pgsql
+      - OWNCLOUD_DB_NAME=owncloud
+      - OWNCLOUD_DB_USERNAME=owncloud
+      - OWNCLOUD_DB_PASSWORD=owncloud
+      - OWNCLOUD_DB_HOST={{database}}
+      - OWNCLOUD_ADMIN_USERNAME=admin
+      - OWNCLOUD_ADMIN_PASSWORD=admin
+      - OWNCLOUD_UTF8MB4_ENABLED=true
+      - OWNCLOUD_REDIS_ENABLED=false
+      - OWNCLOUD_APPS_ENABLE=user_ldap
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/status.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - /mnt/data:/mnt/data
+      - "./owncloud-installed:/usr/local/bin/owncloud-installed"
+      - "./owncloud_ldap.sh:/etc/post_server.d/owncloud_ldap.sh"
+      - "./Config.php:/var/www/owncloud/lib/private/Config.php"
+

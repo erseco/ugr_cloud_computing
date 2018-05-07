@@ -1,0 +1,58 @@
+---
+- hosts: balancer
+  become: true
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+    ansible_ssh_user: ubuntu
+  tasks:
+
+  - name: "Add docker servers to /etc/hosts file"
+    lineinfile: dest=/etc/hosts line="{{ item.1 }} docker{{item.0+1}}" state=present
+    with_indexed_items:
+      - "{{ groups['docker'] }}"
+
+  - name: Install nginx
+    apt: pkg=nginx state=installed update_cache=true
+
+  - name: Add config to nginx available sites
+    become: true
+    template:
+      src: templates/nginx.conf
+      dest: "/etc/nginx/sites-enabled/default"
+      backup: no
+
+  - name: ensure private key and public one are present
+    copy:
+      src: app_keys/{{item}}
+      dest: "/home/{{ansible_ssh_user}}/.ssh/{{item}}"
+      mode: 0600
+      owner: "{{ansible_ssh_user}}"
+      group: "{{ansible_ssh_user}}"
+    with_items:
+      - id_rsa.pub
+      - id_rsa
+
+  - name: Install ssh_config to disable ssh host checking
+    template:
+      src: ssh_config.j2
+      dest: /home/{{ansible_ssh_user}}/.ssh/config
+      backup: no
+      owner: "{{ansible_ssh_user}}"
+      group: "{{ansible_ssh_user}}"
+
+  - name: Add saed.sh script
+    become: false
+    template:
+      src: templates/saed.sh
+      dest: "/home/ubuntu/saed.sh"
+      mode: a+x
+      owner: "{{ansible_ssh_user}}"
+      group: "{{ansible_ssh_user}}"
+      backup: no
+
+
+  - name: Run saed.sh script
+    become: false
+    shell: "/home/ubuntu/saed.sh &"
+
+

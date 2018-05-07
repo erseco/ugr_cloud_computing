@@ -1,0 +1,138 @@
+\chapter{Implementación}
+
+Para la realización de esta práctica me propuse orquestar utilizando el paradigma PaC (Platform as Code), intenté definir la creación de máquinas con Vagrant y provisionar los diferentes servicios completamente con ansible.
+
+\bigskip
+Tras mucha prueba y error con la API de OpenStack y con la particularidad de que no tener disponible lo que en OpenStack denominan \textit{Magic ips} (ips publicas para cada maquina desplegada) conseguí tanto la creación de máquinas como el provisionamiento con ansible en las mismas. Todo esto cuando la máquina lo permitía ya que hubieron diversos problemas que obligaban al reinicio de la máquina OpenStack.
+
+\bigskip
+Para poder conectarme a las distintas máquinas tuve que hacer uso de un proxypass ssh que se conectaba al servidor atcstack y de ahí saltaba a las distintas máquinas. Para facilitar la tarea agregué la configuración necesaria al archivo \texttt{~/.ssh/config}
+
+\begin{lstlisting}[language=bash,caption={fichero ~/.ssh/config}]
+Host openstack
+  Hostname atcstack.ugr.es
+  User CC_XXXXXXX
+
+Host machine_158
+  User          ubuntu
+  HostName      192.168.0.158
+  ProxyCommand ssh CC_74003802@atcstack.ugr.es -W %h:%p
+
+Host machine_159
+  User          ubuntu
+  HostName      192.168.0.159
+  ProxyCommand ssh CC_74003802@atcstack.ugr.es -W %h:%p
+
+Host machine_160
+  User          ubuntu
+  HostName      192.168.0.160
+  ProxyCommand ssh CC_74003802@atcstack.ugr.es -W %h:%p
+
+Host machine_161
+  User          ubuntu
+  HostName      192.168.0.161
+  ProxyCommand ssh CC_74003802@atcstack.ugr.es -W %h:%p
+\end{lstlisting}
+
+Aunque el código Vagrant funcionaba bien, las continuas caídas del servicio \texttt{OpenStack} hizo que el resto de la configuración la hiciera en instancias en mi propia cuenta de AWS.
+
+\bigskip
+Para poder iniciar sesión entre las distintas máquinas se ha generado un par de claves publica-privada  que podemos encontrar en el directorio \texttt{app\_keys}.
+
+\bigskip
+La configuración del servidor de base datos fue bastante trivial, agregando usuarios y asignando los roles necesarios. Se ha optado por \texttt{PostgreSQL} por diferenciar el entorno del típico \texttt{LAMP} (Linux + Apache + MySQL + PHP).
+
+\bigskip
+La configuración del servidor \texttt{LDAP} si ha sido mas complejo pero al final se ha resuelto instalando el \textit{wrapper} \texttt{ldapscripts} y configurando \texttt{debconf} para asignarle la contraseña de superusuario que queramos al paquete \texttt{slapd}. 
+
+\bigskip
+\texttt{OwnCloud} necesita un directorio para persistencia, por lo que si queremos balancear de forma correcta entre máquina la solución mas sencilla es compartir un directorio por NFS, así que instalamos un servidor NFS y configuramos lo necesario para que los demás servidores puedan montar dicha unidad. El código de OwnCloud realiza una serie de bloqueos en el fichero de configuración y dichos bloqueos (\texttt{flock}) no son soportados por NFS por lo que al final se ha optado por inyectar un fichero \texttt{Config.php} dentro del contenedor que evite dichos bloqueos.
+
+
+\bigskip
+Una vez configurado el servidor de BBDDD pasamos a configurar los dos servidores que correrán los contenedores Docker de OwnCloud, en los mismos se han instalado tanto Docker como docker-compose que nos facilitará levantar y escalar contenedores de forma dinámica.
+
+\bigskip
+Se ha utilizado el contenedor `owncloud/server' que podemos encontrar en Docker Hub y que está publicado por los propios desarrolladores de OwnCloud.
+
+\bigskip
+Aunque dicho contenedor incorpora el plugin user\_ldap, dicho plugin no está activado de forma automática por lo que hemos tenido que definir la variable de entorno \texttt{OWNCLOUD\_APPS\_ENABLE=user\_ldap} para que active el plugin.
+
+\bigskip
+Aparte de activar el plugin debemos configurarlo cosa que por defecto no han contemplado los desarrolladores. Al menos permiten ejecutar scripts al finalizar un despliegue. Para ello basta con colocar los scripts que queramos en el directorio /etc/post\_server.d/ del contenedor. Mirando en la documentación de OwnCloud (y tras mucha mas prueba y error) he desarrollado un sencillo script que haciendo uso del cliente \texttt{occ} establece los valores de configuración necesarios para permitir la conexión al servidor LDAP
+
+\begin{lstlisting}[language=bash,caption={bash version}]
+#!/usr/bin/bash
+LDAP_SERVER={{database}}
+# Enable ldap plugin (better do it in env vars)
+# su www-data -c "php occ app:enable user_ldap -n -q --no-ansi
+# Enable and configure LDAP and external storage plugin
+occ ldap:create-empty-config -n -q --no-ansi
+occ ldap:set-config 's01' ldapBase dc=example,dc=com -n -q --no-ansi
+occ ldap:set-config 's01' ldapBaseGroups dc=example,dc=com -n -q --no-ansi
+occ ldap:set-config 's01' ldapBaseUsers dc=example,dc=com -n -q --no-ansi
+occ ldap:set-config 's01' ldapCacheTTL 600 -n -q --no-ansi
+occ ldap:set-config 's01' ldapConfigurationActive 1 -n -q --no-ansi
+occ ldap:set-config 's01' ldapEmailAttribute mail -n -q --no-ansi
+occ ldap:set-config 's01' ldapExperiencedAdmin 0 -n -q --no-ansi
+occ ldap:set-config 's01' ldapExpertUsernameAttr uid -n -q --no-ansi
+occ ldap:set-config 's01' ldapGroupDisplayName cn -n -q --no-ansi
+occ ldap:set-config 's01' ldapGroupFilter objectClass=posixGroup -n -q --no-ansi
+occ ldap:set-config 's01' ldapGroupFilterMode 0 -n -q --no-ansi
+occ ldap:set-config 's01' ldapGroupMemberAssocAttr uniqueMember -n -q --no-ansi
+occ ldap:set-config 's01' ldapHost ${LDAP_SERVER} -n -q --no-ansi
+occ ldap:set-config 's01' ldapLoginFilter '(&(|(objectclass=posixAccount))(uid=%uid))' -n -q --no-ansi
+occ ldap:set-config 's01' ldapLoginFilterEmail 0 -n -q --no-ansi
+occ ldap:set-config 's01' ldapLoginFilterMode 0 -n -q --no-ansi
+occ ldap:set-config 's01' ldapLoginFilterUsername 1 -n -q --no-ansi
+occ ldap:set-config 's01' ldapNestedGroups 0 -n -q --no-ansi
+occ ldap:set-config 's01' ldapPagingSize 500 -n -q --no-ansi
+occ ldap:set-config 's01' ldapPort 389 -n -q --no-ansi
+occ ldap:set-config 's01' ldapQuotaAttribute mailQuota -n -q --no-ansi
+occ ldap:set-config 's01' ldapTLS 0 -n -q --no-ansi
+occ ldap:set-config 's01' ldapUserDisplayName cn -n -q --no-ansi
+occ ldap:set-config 's01' ldapUserFilter objectClass=posixAccount -n -q --no-ansi
+occ ldap:set-config 's01' ldapUserFilterMode 0 -n -q --no-ansi
+occ ldap:set-config 's01' ldapUuidGroupAttribute auto -n -q --no-ansi
+occ ldap:set-config 's01' ldapUuidUserAttribute auto -n -q --no-ansi
+\end{lstlisting}
+
+Una vez configurado LDAP de forma automática en nuestro contenedor procedimos a levantar mas de un contenedor. OwnCloud por defecto no contempla esta configuración por lo que tuvimos que hacer un bypass del script \texttt{/usr/local/bin/owncloud-installed}, que es uno de los scripts de comprobación que ejecuta a la hora de inicializar el contenedor y que crea la base de datos. En nuestro caso lo cambiamos para que en caso de existir la base de datos retornara un valor para que pensara que estamos ante una actualización en lugar de en una instalación.
+
+\begin{lstlisting}[language=bash,caption={comprobacion de que no está previamente configurado OwnCloud}]
+#!/usr/bin/env bash
+set -e
+if [[ $(PGPASSWORD=$OWNCLOUD_DB_PASSWORD psql -U $OWNCLOUD_DB_USERNAME -h {{database}} $OWNCLOUD_DB_NAME -tAc "SELECT to_regclass('oc_users');") != "oc_users" ]]
+then
+  exit 1
+else
+  exit 0
+fi
+\end{lstlisting}
+
+
+Una vez resuelto este problema ya hemos podido levantar múltiples contenedores con la sencilla instrucción \texttt{docker-compose up --scale owncloud=N} siendo N el numero de contenedores que queremos tener. El propio docker-compose se encarga de reescalar si el numero es distinto del numero de contenedores en ejecución.
+
+\bigskip
+Hay que tener en cuenta que al permitir levantar contenedores de forma dinámica no podemos fijar los puertos, así que en el docker-compose le indicamos que asigne un puerto aleatorio a cada contenedor que redirija al puerto 80 que es el que está sirviendo OwnCloud.
+
+\bigskip
+Una vez configuradas las máquinas Docker hemos pasado a configurar el balanceador, que consiste en un nginx  configurado para incluir un fichero de configuración donde sacar la lista de servidores que llamará a través de \texttt{proxypass}.
+
+\bigskip
+Dicha lista de contenedores la hemos extraído de la salida del comando \texttt{docker ps --format "{{.Ports}}"} que nos devuelve los puertos asignados a los contenedores. De esta forma nuestro sistema permite levantar tantos contenedores como queramos sin tener que fijar un numero de puertos.
+
+\bigskip
+Una vez configurado el script de balanceo, hemos procedido a probar que tal se comportaba viendo que como sospechábamos \texttt{OwnCloud} no está preparado de forma nativa para ser balanceado al guardar las sesiones de los usuarios en el sistema interno de \texttt{PHP} que guarda en disco las mismas siendo lo recomendado en estos casos es guardar la configuración de las sesiones en la base de datos.
+
+\bigskip
+Para el balanceo de carga se ha utilizado un sencillo script en bash que incorpora las funciones necesarias para consultar el estado de \texttt{NGINX} y conectarse a los dos nodos \texttt{Docker} para mediante docker-compose hacer un reescalado automático. El script detecta automáticamente los puertos en los que se ha levantado Docker y los incorpora a la lista del \textit{upstream} de \texttt{NGINX} haciendo un reinicio controlado (\textit{reload}) que permite que el servicio no esté caído en ningún momento como si pasaría con un reinicio normal (\textit{restart}). Dicho scripts guarda un log de las tareas realizadas en el archivo \texttt{saed.log}
+
+
+\bigskip
+Para dicho balanceo nos hemos limitado a realizar la operación matemática proporcionada por el profesor que en nuestras pruebas de carga con \texttt{siege} no nos ha dado valores diferentes de 1 o 2, quizá por filtrado de la propia AWS, lo que hemos hecho es utilizar ese numero como valor del numero de contenedores a levantar en cada nodo.
+
+
+
+
+

@@ -1,0 +1,23 @@
+Host openstack
+  Hostname atcstack.ugr.es
+  User CC_74003802
+
+Host machine_158
+  User          ubuntu
+  HostName      192.168.0.158
+  ProxyCommand ssh CC_74003802@atcstack.ugr.es -W %h:%p
+
+Host machine_159
+  User          ubuntu
+  HostName      192.168.0.159
+  ProxyCommand ssh CC_74003802@atcstack.ugr.es -W %h:%p
+
+Host machine_160
+  User          ubuntu
+  HostName      192.168.0.160
+  ProxyCommand ssh CC_74003802@atcstack.ugr.es -W %h:%p
+
+Host machine_161
+  User          ubuntu
+  HostName      192.168.0.161
+  ProxyCommand ssh CC_74003802@atcstack.ugr.es -W %h:%p

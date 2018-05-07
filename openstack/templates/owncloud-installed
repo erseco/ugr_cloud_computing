@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+table=$(PGPASSWORD=$OWNCLOUD_DB_PASSWORD psql -U $OWNCLOUD_DB_USERNAME -h {{database}} $OWNCLOUD_DB_NAME -tAc "SELECT to_regclass('oc_users');")
+if [[ $table != "oc_users" ]]
+then
+  exit 1
+else
+  exit 0
+fi

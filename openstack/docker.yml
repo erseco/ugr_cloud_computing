@@ -1,0 +1,133 @@
+---
+- hosts: docker
+  become: true
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+    ansible_ssh_user: ubuntu
+    host_key_checking: False
+    ANSIBLE_HOST_KEY_CHECKING: False
+    docker_compose_version: 1.20.1
+    docker_compose_bin: /usr/local/bin/docker-compose
+  tasks:
+
+  - name:    Install prerequisites
+    apt:     name={{item}} update_cache=yes
+    with_items:
+     - apt-transport-https
+     - ca-certificates
+     - curl
+     - software-properties-common
+     - python3-pip
+
+  - name: "Add database to  /etc/hosts file"
+    lineinfile: dest=/etc/hosts line="{{ item }} database" state=present
+    with_items: "{{ groups['database'] }}"
+
+  - name:    Add Docker GPG key
+    apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+  - name:    Add Docker APT repository
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+  - name:    Install Docker
+    apt:     name={{item}}
+    with_items:
+     - docker-ce
+
+  - name: Adding existing user '{{ ansible_ssh_user }}' to group docker
+    user: name='{{ ansible_ssh_user }}' groups=docker append=yes
+
+
+  - name: install docker-compose
+    become: 'yes'
+    get_url:
+      url: 'https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
+      dest: '{{ docker_compose_bin }}'
+      force: true
+      mode: '555'
+
+  - name: Set database ip
+    set_fact:
+      database: "{{ item }}"
+    with_items: "{{ groups['database'] }}"
+
+  - name: Add docker-compose.yml
+    template:
+      src: docker-compose.yml.j2
+      dest: "/home/ubuntu/docker-compose.yml"
+      backup: no
+      owner: "{{ansible_ssh_user}}"
+      group: "{{ansible_ssh_user}}"
+
+  - name: ensure private key and public one are present
+    copy:
+      src: app_keys/{{item}}
+      dest: "/home/{{ansible_ssh_user}}/.ssh/{{item}}"
+      mode: 0600
+      owner: "{{ansible_ssh_user}}"
+      group: "{{ansible_ssh_user}}"
+    with_items:
+      - id_rsa.pub
+      - id_rsa
+
+  - name: Set authorized key took from file
+    authorized_key:
+      user: "{{ansible_ssh_user}}"
+      state: present
+      key: "{{ lookup('file', 'app_keys/id_rsa.pub') }}"
+
+
+  - name: Install ssh_config to disable ssh host checking
+    template:
+      src: ssh_config.j2
+      dest: /home/{{ansible_ssh_user}}/.ssh/config
+      backup: no
+      owner: "{{ansible_ssh_user}}"
+      group: "{{ansible_ssh_user}}"
+
+
+  - name: Set owncloud-installed script
+    template:
+      src: owncloud-installed
+      dest: /home/ubuntu/owncloud-installed
+      backup: no
+      owner: "{{ansible_ssh_user}}"
+      group: "{{ansible_ssh_user}}"
+      mode: a+x
+
+  - name: Set owncloud_ldap.sh script
+    template:
+      src: owncloud_ldap.sh
+      dest: /home/ubuntu/owncloud_ldap.sh
+      backup: no
+      owner: "{{ansible_ssh_user}}"
+      group: "{{ansible_ssh_user}}"
+      mode: a+x
+
+
+  - name: Set Config.php script
+    template:
+      src: Config.php
+      dest: /home/ubuntu/Config.php
+      backup: no
+      owner: "www-data"
+      group: "www-data"
+
+
+  - name: install nfs client
+    action: apt pkg=nfs-common state=present
+
+  - name: configure /etc/fstab on clients
+    action: mount name=/mnt/data src={{item}}:/mnt/data fstype=nfs opts=rw,sync,nfsvers=3 state=mounted
+    with_items: "{{ groups['database'] }}"
+
+  # - name: configure /etc/fstab on clients
+  #   action: mount name=/mnt/wwwowncloud src={{item}}:/mnt/wwwowncloud fstype=nfs opts=rw,sync,nfsvers=3 state=mounted
+  #   with_items: "{{ groups['database'] }}"
+
+  - name: Pull docker image
+    command: docker-compose pull
+    ignore_errors: yes
+    args:
+      chdir: /home/ubuntu/
+
+

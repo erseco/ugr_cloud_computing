@@ -1,0 +1,169 @@
+---
+- hosts: database
+  become: true
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+    ansible_ssh_user: ubuntu
+    db_name: owncloud
+    db_user: owncloud
+    db_pass: owncloud
+    postgresql_conf:
+      listen_addresses: "'*'"    # disable network listening (listen on unix socket only)
+      max_connections: 50       # decrease connection limit
+    postgresql_pg_hba_conf:
+      - host all all 0.0.0.0/0 md5
+    postgresql_version: 9.5
+    postgresql_pgdata_default: /var/lib/postgresql/{{ postgresql_version }}/main
+    postgresql_conf_dir: /etc/postgresql/{{ postgresql_version }}/main
+    ldap_user: user
+    ldap_pass: pass
+  tasks:
+
+  - name: Install PostgreSQL
+    apt: name={{item}} update_cache=yes state=installed
+    with_items:
+     - postgresql
+     - postgresql-contrib
+     - python3-psycopg2
+
+  - name: Create database
+    become: yes
+    become_user: postgres
+    postgresql_db: name={{db_name}} state=present
+
+  - name: Create db user
+    become: yes
+    become_user: postgres
+    postgresql_user: db={{db_name}} name={{db_user}} password={{db_pass}} priv=ALL
+
+  - name: Ensure user does not have unnecessary privilege
+    become: yes
+    become_user: postgres
+    postgresql_user: name={{db_user}} role_attr_flags=NOSUPERUSER,NOCREATEDB
+
+  - name: Ensure no other user can access the database
+    become: yes
+    become_user: postgres
+    postgresql_privs: db={{db_name}} role=PUBLIC type=database priv=ALL state=absent
+
+  - name: Create conf.d
+    file: path={{ postgresql_conf_dir }}/conf.d state=directory owner=postgres group=postgres
+
+  - name: Set conf.d include in postgresql.conf
+    lineinfile: line="include_dir 'conf.d'" dest={{ postgresql_conf_dir }}/postgresql.conf backup=yes
+
+  - name: Set config options
+    template: src=25ansible_postgresql.conf.j2 dest={{ postgresql_conf_dir }}/conf.d/25ansible_postgresql.conf owner=postgres group=postgres backup=yes
+
+  - name: Install pg_hba.conf
+    template: src=pg_hba.conf.j2 dest={{ postgresql_conf_dir }}/pg_hba.conf owner=postgres group=postgres mode=0400 backup=yes
+
+  - name: Reload PostgreSQL
+    become: yes
+    service: name=postgresql state=restarted enabled=yes
+
+
+  - name: Set authorized key took from file
+    authorized_key:
+      user: "{{ansible_ssh_user}}"
+      state: present
+      key: "{{ lookup('file', 'app_keys/id_rsa.pub') }}"
+
+
+  - name: "Add example.com to  /etc/hosts file"
+    lineinfile: dest=/etc/hosts line="127.0.0.1 example.com" state=present
+
+
+  - name: Configure domain
+    debconf:
+      name: slapd
+      question: slapd/domain
+      value: example.com
+      vtype: string
+
+  - name: Configure domain
+    debconf:
+      name: slapd
+      question: shared/organization
+      value: example.com
+      vtype: string
+
+  - name: Configure domain
+    debconf:
+      name: slapd
+      question: slapd/internal/adminpw
+      value: secret
+      vtype: password
+
+  - name: Configure domain
+    debconf:
+      name: slapd
+      question: slapd/internal/generated_adminpw
+      value: secret
+      vtype: password
+
+  - name: Configure domain
+    debconf:
+      name: slapd
+      question: slapd/password1
+      value: secret
+      vtype: password
+
+  - name: Configure domain
+    debconf:
+      name: slapd
+      question: slapd/password2
+      value: secret
+      vtype: password
+
+  - name:   Install OpenLDAP
+    apt:     name={{item}} update_cache=yes
+    with_items:
+     - slapd
+     - ldap-utils
+     - ldapscripts
+
+  - name: Set ldapscripts.conf
+    template: src=ldapscripts.conf dest=/etc/ldapscripts/ldapscripts.conf owner=root group=root backup=no
+
+  - name: Init ldap
+    become: yes
+    ignore_errors: yes
+    command: "ldapinit"
+
+  - name: Add ldap user to group users
+    become: yes
+    ignore_errors: yes
+    command: "ldapadduser {{ldap_user}} users"
+
+  - name: Set ldap user password
+    become: yes
+    ignore_errors: yes
+    command: "ldapsetpasswd {{ldap_user}} {{ldap_pass}}"
+
+
+  - name:   Install NFS server
+    apt:     name={{item}} update_cache=yes
+    with_items:
+     - nfs-kernel-server
+
+  - name: Creates directory
+    become: yes
+    file:
+      path: /mnt/data/
+      state: directory
+      owner: www-data
+      group: www-data
+      mode: 0755
+
+  - lineinfile:
+      path: /etc/exports
+      state: present
+      line: '/mnt/data/ {{item}}(rw,sync,no_root_squash,no_subtree_check)'
+    with_items: "{{ groups['docker'] }}"
+
+  - name: Restart NFS immediately if exports are updated.
+    service: "name=nfs-server state=restarted"
+
+
+

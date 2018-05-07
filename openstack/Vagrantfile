@@ -1,0 +1,105 @@
+
+# system('. exit./set_vars.sh')
+
+require 'vagrant-openstack-provider'
+
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure('2') do |config|
+
+
+
+  config.ssh.username = 'ubuntu'
+  config.ssh.private_key_path = "~/.ssh/id_rsa"
+  config.ssh.proxy_command = 'ssh ' + ENV['OS_USERNAME'] + '@atcstack.ugr.es -W %h:%p'
+  config.ssh.forward_agent = true
+  config.ssh.pty = true
+
+  config.vm.provider :openstack do |os, override|
+    os.identity_api_version = '3'
+    os.openstack_auth_url = 'http://atcstack.ugr.es:5000/v3/auth/tokens'
+
+    os.username           = ENV['OS_USERNAME']
+    os.password           = ENV['OS_PASSWORD']
+    os.tenant_name        = ENV['OS_PROJECT_NAME']
+    os.project_name       = ENV['OS_PROJECT_NAME']
+    os.flavor             = 'm2.extra'
+    os.image              = 'ubuntu16_64'
+    os.keypair_name       = 'erseco'
+    os.domain_name        = 'default'
+
+    os.use_legacy_synced_folders = true
+
+    # Added to avoid fail in vagrant up
+    if ARGV.include?("up")
+      os.ssh_disabled       = true
+    end
+
+  end
+
+  # First instance
+  config.vm.define "s161" do |s161|
+    s161.vm.provider :openstack do |os, override|
+      os.server_name = 's161'
+      os.networks = [
+        {
+          name: 'provider',
+          address: '192.168.0.161'
+        }
+      ]
+    end
+  end
+
+  # Second instance
+  config.vm.define "s159" do |s159|
+    s159.vm.provider :openstack do |os, override|
+      os.server_name = 's159'
+      os.networks = [
+        {
+          name: 'provider',
+          address: '192.168.0.159'
+        }
+      ]
+    end
+  end
+
+  # Third instance
+  config.vm.define "s160" do |s160|
+    s160.vm.provider :openstack do |os, override|
+      os.server_name = 's160'
+      os.networks = [
+        {
+          name: 'provider',
+          address: '192.168.0.160'
+        }
+      ]
+    end
+  end
+
+  # Fourth instance
+  config.vm.define "s158" do |s158|
+    s158.vm.provider :openstack do |os, override|
+      os.server_name = 's158'
+      os.networks = [
+        {
+          name: 'provider',
+          address: '192.168.0.158'
+        }
+      ]
+    end
+  end
+
+  # Ansible provisioning
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "playbook.yml"
+    ansible.groups = {
+          "database"  => ["s161"],
+          "docker"    => ["s159", "s160"],
+          "balancer"  => ["s158"],
+
+        }
+
+  end
+
+end
+

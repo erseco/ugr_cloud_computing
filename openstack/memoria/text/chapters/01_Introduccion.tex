@@ -1,0 +1,36 @@
+\chapter{Introducción}
+
+\subsubsection{Para	 el	 diseño	 del	 sistema	 de	 almacenamiento	 de	 alta	 disponibilidad	 en	 Cloud,	 hay	 que	
+considerar	los	componentes	siguientes	que	deben	ser	desplegados en	la	arquitectura	que	
+se	ha	provisto	dentro	de	OpenStack:}
+
+\begin{enumerate}
+\item
+Servicio	 de	 alta	 disponibilidad / balanceador	 de	 carga.	 Este	 servicio	 será	 el	
+encargado	 de	 enrutar y	 balancear	 las	 peticiones	 de	 los	 clientes	 a	 los	 servicios	 de	
+almacenamiento	redundantes	que	se	desplegarán.	 Se	usará	HAproxy o	NGINX.	Se	
+recomienda	utilizar	NGINX,	debido	a	su	facilidad	de	uso.
+\item
+Servicio	 de	 almacenamiento.	 Es	 el	 servicio	 de	 almacenamiento	 y	 gestión	 de	 los	
+datos	en	 cloud.	Este	 servicio	 se	encontrará	 replicado	en	al	menos	dos	nodos	de	la	
+infraestructura	y	dará	soporte	de	almacenamiento	en	cloud.	Se	usará	la	plataforma	
+de	almacenamiento	de	ficheros	owncloud.
+
+\item
+Servicio	 de	 auto-escalado	 dinámico.	 Este	 servicio	 permite	 que	 se	 creen	 o	
+destruyan	 nuevos	 contenedores	 para	 el	 servicio	 de	 almacenamiento.	 El	 servicio	
+debe	ser	programado	en	el	lenguaje	que	prefieras.
+
+\item
+Servicios	de	bases	de	datos.	El	servicio	de	almacenamiento	requiere	de	un	sistema	
+de	 base	 de	 datos	 para	 poder	 almacenar	 toda	la	información	 de	 usuarios,	 ficheros,	
+metadatos,	 etc.	 Para	 ello	 como	 mínimo	 se	 usará	 un	 nodo,	 con	
+MariaBD/MySQL/PostgreSQL.
+
+\item
+Servicio	 de	 autenticación.	 Este	 servicio	 se	 encargará	 de	 habilitar	 el	 acceso	 a	los	
+usuarios	 de	 owncloud en	 el	 sistema	 de	 almacenamiento	 en	 cloud.	 El	 servicio	 de	
+directorio	 de	 usuarios	 será	 LDAP y	 podrá	 estar	 compartido	 dentro	 del	 nodo	 de	
+Base	de	Datos.
+
+\end{enumerate}

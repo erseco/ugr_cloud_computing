@@ -4,3 +4,5 @@
 *.retry
 
 .vagrant
+
+entregable/
