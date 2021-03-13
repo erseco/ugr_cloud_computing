@@ -25,14 +25,14 @@ Lo primero de todo vamos a hacer un análisis del fichero que nos han proporcion
 
 Vemos el tamaño del fichero que es de 1,1 gigabytes
 ```
-[CC_74003802@hadoop-master 01_stdev]$ hdfs dfs -ls -h /user/manuparra/ECBDL14_10tra.data
+[user@hadoop-master 01_stdev]$ hdfs dfs -ls -h /user/manuparra/ECBDL14_10tra.data
 -rw-r--r--   2 supergroup supergroup      1.1 G 2018-05-18 18:48 /user/manuparra/ECBDL14_10tra.data
 ```
 
 Vamos a analizar tanto la cabecera como el pie para haernos una idea de que valores vamos a encontrarnos
 
 ```
-[CC_74003802@hadoop-master 01_stdev]$ hdfs dfs -cat /user/manuparra/ECBDL14_10tra.data | head
+[user@hadoop-master 01_stdev]$ hdfs dfs -cat /user/manuparra/ECBDL14_10tra.data | head
 0.182,0.041,-1,-3,-5,-5,-3,-3,2,-1,0
 0.154,0.062,0,2,3,5,-4,-5,0,-2,0
 0.260,0.024,-3,1,-3,-6,6,-6,-5,-6,0
@@ -45,7 +45,7 @@ Vamos a analizar tanto la cabecera como el pie para haernos una idea de que valo
 0.094,0.052,-5,-3,3,-5,-4,-5,-6,-7,0
 cat: Unable to write to output stream.
 
-[CC_74003802@hadoop-master 01_stdev]$ hdfs dfs -cat /user/manuparra/ECBDL14_10tra.data | tail
+[user@hadoop-master 01_stdev]$ hdfs dfs -cat /user/manuparra/ECBDL14_10tra.data | tail
 0.217,0.045,-5,0,-4,0,-4,9,-7,3,0
 0.221,0.076,-2,-2,1,-2,1,-4,-3,1,0
 0.152,0.055,-4,-8,-3,0,-6,-2,1,-4,0
@@ -67,7 +67,7 @@ mkdir java_classes
 
 Y procedemos a la ejecución del programa:
 ```
-[CC_74003802@hadoop-master 01_stdev]$ hadoop jar DevSTD.jar oldapi.DevSTD /user/manuparra/ECBDL14_10tra.data /user/CC_74003802/output
+[CC_jjnn003802@hadoop-master 01_stdev]$ hadoop jar DevSTD.jar oldapi.DevSTD /user/manuparra/ECBDL14_10tra.data /user/output
 18/06/02 11:36:50 INFO client.RMProxy: Connecting to ResourceManager at hadoop-master/192.168.10.1:8032
 18/06/02 11:36:50 INFO client.RMProxy: Connecting to ResourceManager at hadoop-master/192.168.10.1:8032
 18/06/02 11:36:50 WARN mapreduce.JobResourceUploader: Hadoop command-line option parsing not performed. Implement the Tool interface and execute your application with ToolRunner to remedy this.
@@ -148,7 +148,7 @@ Y procedemos a la ejecución del programa:
 Por último mostramos la salida del programa tal y como indica la práctica para mostrar el valor de la desviación estándar de las 9 primeras columnas
 
 ```
-[CC_74003802@hadoop-master 01_stdev]$ hdfs dfs -cat  /user/CC_74003802/output/*
+[user@hadoop-master 01_stdev]$ hdfs dfs -cat  /user/output/*
 1   0.022106364868689547
 2   3.120921804806522
 3   2.8697504207311573
@@ -173,7 +173,7 @@ hadoop fs -cat /user/manuparra/ECBDL14_10tra.data | head
 
 Creamos el descriptor de fichero usando 10 N L (10 numéricos y un Label):
 ```
-hadoop jar ~/mahout-distribution-0.9.jar org.apache.mahout.classifier.df.tools.Describe -p /user/manuparra/ECBDL14_10tra.data -f /user/CC_74003802/descriptor.info -d 10 N L
+hadoop jar ~/mahout-distribution-0.9.jar org.apache.mahout.classifier.df.tools.Describe -p /user/manuparra/ECBDL14_10tra.data -f /user/descriptor.info -d 10 N L
 18/06/02 12:00:46 INFO tools.Describe: Generating the descriptor...
 18/06/02 12:00:47 INFO tools.Describe: generating the dataset...
 18/06/02 12:01:53 INFO tools.Describe: storing the dataset description
@@ -182,7 +182,7 @@ hadoop jar ~/mahout-distribution-0.9.jar org.apache.mahout.classifier.df.tools.D
 Ejecutamos el random forest:
 
 ```
-hadoop jar ~/mahout-distribution-0.9.jar org.apache.mahout.classifier.df.mapreduce.BuildForest -Dmapreduce.input.fileinputformat.split.minsize=11886574 -Dmapreduce.input.fileinputformat.split.maxsize=11886574 -o /user/CC_74003802/output -d /user/manuparra/ECBDL14_10tra.data -ds /user/CC_74003802/descriptor.info -sl 6 -p -t 100
+hadoop jar ~/mahout-distribution-0.9.jar org.apache.mahout.classifier.df.mapreduce.BuildForest -Dmapreduce.input.fileinputformat.split.minsize=11886574 -Dmapreduce.input.fileinputformat.split.maxsize=11886574 -o /user/output -d /user/manuparra/ECBDL14_10tra.data -ds /user/descriptor.info -sl 6 -p -t 100
 18/06/02 12:03:00 INFO mapreduce.BuildForest: Partial Mapred implementation
 18/06/02 12:03:00 INFO mapreduce.BuildForest: Building the forest...
 18/06/02 12:03:00 INFO client.RMProxy: Connecting to ResourceManager at hadoop-master/192.168.10.1:8032
@@ -234,17 +234,17 @@ hadoop jar ~/mahout-distribution-0.9.jar org.apache.mahout.classifier.df.mapredu
         Bytes Read=1134251702
     File Output Format Counters
         Bytes Written=20276456
-18/06/02 12:03:48 INFO common.HadoopUtil: Deleting hdfs://hadoop-master/user/CC_74003802/output
+18/06/02 12:03:48 INFO common.HadoopUtil: Deleting hdfs://hadoop-master/user/output
 18/06/02 12:03:48 INFO mapreduce.BuildForest: Build Time: 0h 0m 48s 486
 18/06/02 12:03:48 INFO mapreduce.BuildForest: Forest num Nodes: 1447252
 18/06/02 12:03:48 INFO mapreduce.BuildForest: Forest mean num Nodes: 14472
 18/06/02 12:03:48 INFO mapreduce.BuildForest: Forest mean max Depth: 42
-18/06/02 12:03:48 INFO mapreduce.BuildForest: Storing the forest in: /user/CC_74003802/output/forest.seq
+18/06/02 12:03:48 INFO mapreduce.BuildForest: Storing the forest in: /user/output/forest.seq
 ```
 
 Obtenemos las predicciones:
 ```
-hadoop jar ~/mahout-distribution-0.9.jar org.apache.mahout.classifier.df.mapreduce.TestForest -i /user/manuparra/ECBDL14_10tst.data -ds /user/CC_74003802/descriptor.info -m /user/CC_74003802/output/forest.seq -a -mr -o /user/CC_74003802/predictions
+hadoop jar ~/mahout-distribution-0.9.jar org.apache.mahout.classifier.df.mapreduce.TestForest -i /user/manuparra/ECBDL14_10tst.data -ds /user/descriptor.info -m /user/output/forest.seq -a -mr -o /user/predictions
 18/06/02 12:06:56 INFO mapreduce.Classifier: Adding the dataset to the DistributedCache
 18/06/02 12:06:56 INFO mapreduce.Classifier: Adding the decision forest to the DistributedCache
 18/06/02 12:06:56 INFO mapreduce.Classifier: Configuring the job...
@@ -297,7 +297,7 @@ hadoop jar ~/mahout-distribution-0.9.jar org.apache.mahout.classifier.df.mapredu
         Bytes Read=102747144
     File Output Format Counters
         Bytes Written=58538043
-18/06/02 12:08:08 INFO common.HadoopUtil: Deleting /user/CC_74003802/predictions/mappers
+18/06/02 12:08:08 INFO common.HadoopUtil: Deleting /user/predictions/mappers
 18/06/02 12:08:09 INFO mapreduce.TestForest:
 =======================================================
 Summary
